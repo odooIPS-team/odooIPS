@@ -25,8 +25,9 @@ class SaleOrder(models.Model):
 
     def _has_discount_above_limit(self):
         self.ensure_one()
+        limite = self.env.company.limite_descuento_global or 15.0
         return any(
-            line.discount > self.descuento_maximo_permitido
+            line.discount > limite
             for line in self.order_line
             if not line.display_type
         )
@@ -61,6 +62,12 @@ class SaleOrder(models.Model):
                     })
                     raise UserError(DISCOUNT_LIMIT_ERROR)
         return super(SaleOrder, self).action_confirm()
+
+    def action_approve_discount(self):
+        self.ensure_one()
+        if not self.env.user.has_group('validacion_descuento_maximo.group_supervisor_descuentos'):
+            raise UserError("No tienes permisos de supervisor para aprobar este descuento")
+        return self.with_context(skip_discount_limit_validation=True).action_confirm()
 
 
 class SaleOrderLine(models.Model):
