@@ -6,23 +6,15 @@
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[@id='sale_pricing']" position="after">
-                <h2>Control de Descuentos</h2>
-                <div class="row mt16 o_settings_container">
-                    <div class="col-12 col-lg-6 o_setting_box">
-                        <div class="o_setting_left_pane"/>
-                        <div class="o_setting_right_pane">
-                            <label for="limite_descuento_global"/>
-                            <div class="text-muted">
-                                Porcentaje máximo de descuento permitido sin aprobación de supervisor
-                            </div>
-                            <div class="content-group">
-                                <div class="row mt16">
-                                    <label class="col-3 o_light_label" for="limite_descuento_global"/>
-                                    <field name="limite_descuento_global" class="col-2"/>
-                                    <span class="col-1">%</span>
-                                </div>
-                            </div>
+            <xpath expr="//field[@name='group_discount_per_so_line']/../.." position="after">
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_right_pane">
+                        <label for="limite_descuento_global" string="Límite de Descuento Global"/>
+                        <div class="text-muted">
+                            Porcentaje máximo de descuento permitido sin aprobación de supervisor
+                        </div>
+                        <div class="content-group">
+                            <field name="limite_descuento_global" class="oe_inline"/>
                         </div>
                     </div>
                 </div>
