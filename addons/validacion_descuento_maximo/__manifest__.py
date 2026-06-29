@@ -8,6 +8,8 @@
     'installable': True,
     'license': 'LGPL-3',
     'data': [
-    'views/sale_order_views.xml',
+        'security/security.xml',
+        'security/ir.model.access.csv',
+        'views/sale_order_views.xml',
     ],
 }

@@ -53,7 +53,13 @@ class SaleOrder(models.Model):
         return result
 
     def action_confirm(self):
-        self._raise_discount_limit_error()
+        for order in self:
+            if order._has_discount_above_limit():
+                if not self.env.user.has_group('validacion_descuento_maximo.group_supervisor_descuentos'):
+                    order.with_context(skip_discount_limit_validation=True).write({
+                        'state': 'requires_review',
+                    })
+                    raise UserError(DISCOUNT_LIMIT_ERROR)
         return super(SaleOrder, self).action_confirm()
 
 
