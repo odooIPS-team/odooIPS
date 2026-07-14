@@ -74,25 +74,33 @@
 
 == Contexto academico del proyecto
 
-El proyecto corresponde al trabajo final del curso Ingenieria de Procesos de Software 2026-A. Su proposito fue aplicar un ciclo completo de gestion y desarrollo sobre un producto open source real, integrando Scrum como marco de trabajo agil y practicas DevOps para versionamiento, automatizacion, pruebas, evidencias y publicacion documental. La actividad exigio que el equipo no solo produzca una modificacion tecnica, sino que demuestre el proceso seguido mediante carga documental verificable.
+El presente informe corresponde al trabajo final del curso Ingenieria de Procesos de Software 2026-A y documenta la ejecucion de un proyecto desarrollado sobre un producto open source real. La finalidad del trabajo no fue construir un sistema desde cero, sino intervenir un software existente bajo condiciones cercanas a un entorno profesional: lectura de codigo heredado, planificacion incremental, coordinacion de equipo, control de versiones, validacion funcional y generacion de evidencias. Por ello, el resultado debe evaluarse tanto por la mejora implementada como por la capacidad del equipo para demostrar el proceso seguido.
 
-El producto seleccionado fue Odoo ERP, una plataforma empresarial modular cuyo codigo fuente se mantiene publicamente y permite analisis, extension e integracion de modulos funcionales @odoo2026. La eleccion de un sistema ERP permitio trabajar con una base de codigo amplia, una arquitectura real y procesos de negocio comprensibles para un proyecto academico.
+La aplicacion de Scrum y DevOps se asumio como eje metodologico del proyecto. Scrum permitio organizar el trabajo en sprints, establecer objetivos progresivos y distribuir responsabilidades; DevOps permitio conectar el desarrollo con validaciones automatizadas, entornos reproducibles y publicacion documental. Esta combinacion fue necesaria porque el proyecto exigia una entrega tecnica, pero tambien una carga documental capaz de evidenciar backlog, tablero, issues, commits, pruebas, pipelines, pull requests y cierre del producto.
 
 == Objetivo general del trabajo
 
-El objetivo general fue implementar y documentar una mejora funcional en Odoo ERP aplicando Scrum y practicas DevOps de forma trazable. Para cumplirlo, el equipo organizo el trabajo en cinco sprints, gestiono tareas mediante GitHub Issues y GitHub Projects, desarrollo un addon de control de descuentos en Ventas, ejecuto pruebas, preparo evidencia de CI/CD y publico un portal de documentacion en GitHub Pages.
+El objetivo general del trabajo fue aplicar un proceso completo de gestion, implementacion y validacion sobre Odoo ERP, incorporando una mejora funcional en el modulo de Ventas y documentando su evolucion desde la seleccion inicial del producto hasta el cierre del Sprint 4. La mejora tecnica se centro en el control de descuentos comerciales, pero el objetivo academico fue mas amplio: demostrar que el equipo podia planificar, ejecutar, validar, integrar y defender un incremento de software mediante practicas Scrum y DevOps verificables.
+
+Para alcanzar este objetivo, el proyecto se estructuro como una secuencia de entregas incrementales. Cada sprint aporto una parte del resultado final: primero la viabilidad y planificacion, luego el entorno y el analisis arquitectonico, despues la implementacion inicial, posteriormente la estabilizacion del flujo funcional y, finalmente, el cierre documental y la preparacion de defensa.
 
 == Producto open source seleccionado
 
-Odoo ERP fue seleccionado por su dominio empresarial, su arquitectura modular y su aplicabilidad a procesos comerciales. El modulo principal de trabajo fue Ventas, debido a que concentra cotizaciones, pedidos, clientes, lineas de venta, confirmacion comercial y facturacion. El modulo de Compras se uso como analisis complementario para mostrar comprension del entorno ERP y de la relacion entre procesos de negocio.
+El producto seleccionado fue Odoo ERP, una plataforma empresarial modular utilizada para gestionar procesos comerciales, administrativos y operativos. Su codigo fuente publico y su arquitectura basada en modulos lo convierten en un caso adecuado para un trabajo academico de ingenieria de software, ya que permite analizar una base de codigo extensa y, al mismo tiempo, incorporar mejoras mediante addons sin alterar innecesariamente el nucleo del sistema @odoo2026.
+
+Dentro de Odoo, el modulo de Ventas fue elegido como frente principal porque concentra un flujo de negocio claro: cotizacion, pedido, lineas de venta, descuentos, confirmacion y continuidad hacia facturacion. El modulo de Compras se considero como complemento de analisis para ubicar la mejora dentro de un contexto ERP mas amplio, aunque la implementacion funcional se delimito al proceso comercial de ventas.
 
 == Alcance tecnico y metodologico
 
-El alcance tecnico se centro en el addon `validacion_descuento_maximo`, que extiende el flujo de pedidos de venta para controlar descuentos superiores a un limite permitido. El alcance metodologico incluyo planificacion Scrum, seguimiento por tablero Kanban, milestones, issues, asignaciones, revisiones por sprint, QA, automatizacion con GitHub Actions, preparacion de Jenkins como validacion complementaria, publicacion en GitHub Pages y elaboracion de este informe en Typst.
+Desde el punto de vista tecnico, el alcance se concentro en el addon `validacion_descuento_maximo`. Este componente extiende el comportamiento del pedido de venta para detectar descuentos superiores a un umbral permitido, retener el pedido en un estado de revision, restringir la aprobacion a un supervisor autorizado y permitir que el limite sea configurable. La solucion se planteo como una mejora puntual, pero suficientemente representativa para involucrar backend, vistas XML, seguridad, configuracion y pruebas.
+
+Desde el punto de vista metodologico, el alcance comprende la gestion del trabajo mediante Scrum, el uso de GitHub como plataforma de trazabilidad, la automatizacion con GitHub Actions, el uso de Docker Compose como entorno reproducible, la preparacion de Jenkins como validacion complementaria y la publicacion de evidencias en GitHub Pages. El informe final en Typst funciona como sintesis academica de ese proceso.
 
 == Organizacion del documento
 
-El documento se organiza como informe final y carga documental. Las primeras secciones justifican la seleccion del producto y el marco Scrum aplicado. Luego se describe la gestion en GitHub, la planificacion general, el desarrollo por sprints, la arquitectura tecnica, la implementacion funcional, DevOps, QA, trazabilidad, metricas, resultados, discusion y conclusiones. Los anexos concentran las capturas que sustentan visualmente el avance del proyecto.
+El documento esta organizado para que el lector pueda reconstruir el proyecto completo. Primero se presenta la seleccion y viabilidad del producto, porque esa decision define el punto de partida tecnico y legal. Luego se explica como se aplico Scrum y como se gestiono el trabajo en GitHub, ya que esas evidencias sostienen la trazabilidad del proceso. Despues se desarrolla la planificacion general y la evolucion sprint por sprint, mostrando como el trabajo avanzo desde la viabilidad inicial hasta el cierre profesional.
+
+Las secciones posteriores se concentran en el producto: arquitectura, implementacion funcional, DevOps, QA, trazabilidad, metricas y resultados. Finalmente, la discusion y las conclusiones interpretan las decisiones tomadas, los problemas encontrados y las lecciones aprendidas. Los anexos se reservan para capturas y matrices completas, de modo que el cuerpo principal mantenga una lectura tecnica y academica sin convertirse en una simple acumulacion de evidencias.
 
 = Evidencia de seleccion y viabilidad del proyecto
 
