@@ -2,6 +2,9 @@
 
 # Proyecto SCRUM y DevOps – Odoo (Módulo Ventas)
 
+![CI Odoo](https://github.com/odooIPS-team/odooIPS/actions/workflows/main.yml/badge.svg)
+![License](https://img.shields.io/github/license/odooIPS-team/odooIPS)
+![Last Commit](https://img.shields.io/github/last-commit/odooIPS-team/odooIPS)
 ## 1. Información del Equipo
 
 | Información | Detalle |
@@ -59,6 +62,26 @@ Repositorio oficial del proyecto:
 | GitHub Pages | [Ver sitio](https://odooips-team.github.io/odooIPS/) |
 | Arquitectura del módulo | [Ver documento](https://odooips-team.github.io/odooIPS/docs/arquitectura-modulo-ventas.html) |
 | Reporte de verificación — Sprint 0 | [Ver documento](https://odooips-team.github.io/odooIPS/docs/reporte-verificacion-sprint-0.html) |
+
+---
+## 7. CI/CD
+
+**Pipeline oficial:** GitHub Actions (`.github/workflows/main.yml`)
+- Último run exitoso: [Ver run](https://github.com/odooIPS-team/odooIPS/actions/runs/29319293929) — 14 de julio de 2026, 03:47 (hora Perú)
+- Rama: `19.0` · Duración: 1m 46s
+- Artifact de pruebas: `odoo-test-results` (3.08 KB), disponible en el run enlazado arriba, sección Artifacts.
+
+**Pipeline alternativo/local:** `Jenkinsfile`
+Este repositorio incluye un `Jenkinsfile` como demostración de un pipeline
+equivalente ejecutable localmente con Jenkins. No reemplaza a GitHub Actions,
+que sigue siendo el CI oficial. Etapas:
+1. Checkout del código
+2. Preparación de entorno (verifica Docker/Compose disponibles)
+3. Levantamiento del entorno (`docker compose up -d` sobre `docker-config`)
+4. Espera de inicialización de Postgres/Odoo
+5. Ejecución de pruebas del módulo `validacion_descuento_maximo`
+6. Recolección de evidencia (logs archivados como artifact de Jenkins)
+7. Limpieza (`docker compose down -v`)
 | Cronograma | [Ver documento](https://odooips-team.github.io/odooIPS/docs/cronograma-sprints.html) |
 | Informe del Sprint 1 | [Ver informe](https://odooips-team.github.io/odooIPS/docs/sprints/informe-sprint-1.html) |
 | Informe del Sprint 2 | [Ver informe](https://odooips-team.github.io/odooIPS/docs/sprints/informe-sprint-2.html) |
