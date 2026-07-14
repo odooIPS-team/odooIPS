@@ -14,6 +14,7 @@ Este directorio reúne únicamente la documentación académica creada por el eq
 | Documento | Descripción |
 | --- | --- |
 | [Plan general del proyecto](../index.html) | Objetivo, equipo, roles, herramientas y resumen de los sprints. |
+| [Resumen integral del proyecto](resumen-integral-proyecto.html) | Síntesis completa, estado verificable y auditoría de commits de Sprint 0 y Sprint 1. |
 | [Cronograma de sprints](cronograma-sprints.html) | Fechas, hitos, actividades y entregables. |
 | [Arquitectura del módulo de Ventas](arquitectura-modulo-ventas.html) | Alcance, complejidad, estructura y mejoras propuestas. |
 | [Verificación técnica — Sprint 0](reporte-verificacion-sprint-0.html) | Licencia, viabilidad, stack e infraestructura inicial. |
