@@ -93,7 +93,7 @@ Ventas con análisis complementario de Compras.
 | Seguridad | Grupo `group_discount_supervisor` | Solo un usuario autorizado puede ejecutar la aprobación |
 | Aprobación | Método `action_approve_discount` | El supervisor libera el pedido retenido y lo coloca en estado de venta |
 | Interfaz | Vistas heredadas de pedido de venta y ajustes | Se muestran el límite, el estado y la acción de aprobación |
-| Pruebas | 15 casos backend con el framework de pruebas de Odoo | Se cubren límites, permisos, múltiples líneas, cambios y configuración |
+| Pruebas | 16 métodos de prueba presentes en la rama actual | Se cubren límites, permisos, múltiples líneas, cambios y configuración |
 
 El addon está organizado en modelos, seguridad, vistas y pruebas. La regla
 ignora líneas de sección o nota mediante `display_type`, revisa todas las líneas
@@ -135,6 +135,134 @@ milestones, tablero Kanban, revisiones de avance y documentación por sprint. El
 burndown publicado reconstruye el avance acumulado del proyecto y no debe
 interpretarse como una medición exclusiva de GitHub Pages.
 
+### Profundidad técnica alcanzada en el Sprint 1
+
+El Sprint 1 estableció la base de reproducibilidad sobre la que se desarrolló
+el addon. El equipo preparó un sistema Ubuntu con Docker y Docker Compose,
+clonó la rama `19.0`, abrió la rama
+`feature/roydan-configuracion-entorno` y levantó dos servicios conectados por
+una red dedicada: Odoo 19 como aplicación y PostgreSQL 15 como persistencia. El
+montaje `../addons:/mnt/extra-addons` permitió que los módulos creados en el
+repositorio fueran visibles desde el contenedor sin construir una imagen
+personalizada. La comprobación se realizó con `docker compose ps` y con el
+acceso al formulario de configuración en `http://localhost:8069`, donde se creó
+la base de trabajo `odoo_ventas` con datos de demostración.
+
+La arquitectura se estudió antes de seleccionar el punto de modificación. La
+auditoría del manifiesto de `sale` identificó tres dependencias directas:
+`sales_team`, para equipos y jerarquías comerciales; `account_payment`, para la
+relación con pagos y facturación; y `utm`, para la atribución de campañas. El
+análisis también reconoció dependencias transitivas relevantes como `account`,
+`payment` y `portal`. Esto permitió comprender que una orden de venta no es un
+registro aislado, sino un orquestador conectado con clientes, compañías,
+facturas, pagos y la experiencia del portal.
+
+El modelo `sale.order` se documentó desde cuatro perspectivas. En persistencia,
+se analizaron `partner_id`, `company_id`, `order_line`, `invoice_ids` e
+`invoice_status`. En comportamiento, se reconstruyó la máquina de estados
+`draft`, `sent`, `sale` y `cancel`. En lógica transaccional, se revisaron
+`_action_cancel`, responsable de coordinar la cancelación con facturas en
+borrador, y `_create_invoices`, que prepara líneas facturables, anticipos,
+agrupaciones y conversiones contables. Finalmente, se estudiaron
+`action_confirm` y `_action_confirm` como puntos de extensión apropiados para
+insertar controles antes de consolidar una venta.
+
+La interfaz también se analizó como parte de la arquitectura, no únicamente
+como presentación visual. El equipo revisó el encabezado de la vista de pedido,
+los botones que invocan métodos Python, los banners condicionales, el componente
+relacional de `order_line`, las vistas `form`, `list`, `kanban`, `pivot`,
+`graph`, `calendar` y `activity`, y la capa de búsqueda con dominios y
+agrupaciones. Esta trazabilidad entre XML y backend justificó que la mejora
+posterior usara herencia de vistas y un botón `type="object"` conectado con una
+acción del modelo.
+
+El resultado más importante del Sprint 1 fue, por tanto, una decisión de
+diseño: extender Odoo mediante un addon separado y controlar el descuento en el
+flujo de confirmación, conservando intacto el módulo `sale`. Sprint 2 tomó esa
+decisión y construyó el MVP; Sprint 3 tuvo que refinar su comportamiento
+transaccional y añadir la jerarquía de aprobación.
+
+### Profundidad metodológica y técnica del Sprint 3
+
+El Sprint 3 tuvo como meta transformar el bloqueo inicial en un flujo de
+aprobación parametrizable y verificable. Bryan Sencia actuó como Scrum Master y
+responsable de DevOps; Aaron Quiñonez asumió Product Owner, backend y
+parametrización; Diego Yauli trabajó en frontend XML y publicación; y Saul
+Sivincha se encargó de QA. El informe del sprint estructuró el alcance en seis
+historias de usuario:
+
+| Historia | Prioridad | Necesidad y criterio principal |
+| --- | --- | --- |
+| HU-1 | Crítica | Ejecutar las pruebas del addon en cada `push` y hacer fallar el pipeline ante una regresión |
+| HU-2 | Alta | Permitir que solo un Supervisor de Descuentos apruebe pedidos retenidos |
+| HU-3 | Alta | Sustituir el límite fijo por un parámetro configurable por compañía, con 15% predeterminado |
+| HU-4 | Alta | Adaptar las pruebas al estado `requires_review`, los permisos y la parametrización |
+| HU-5 | Media | Publicar documentación técnica y seguimiento visual en GitHub Pages |
+| HU-6 | Media | Iniciar el artículo IEEE y reunir métricas de calidad y ejecución |
+
+El backlog detallado descompuso esas historias en 13 tareas: integración de
+pruebas en CI, grupo supervisor, método de aprobación, configuración por
+compañía, botón condicionado, artifact del log, campo en Ajustes, pruebas de
+aprobación, pruebas de límites, GitHub Pages, borrador IEEE, métricas y
+corrección transaccional. La página general contabiliza 12 issues para Sprint 3
+porque la tarea de GitHub Pages fue reclasificada posteriormente como Sprint 4.
+La diferencia no representa una tarea inexistente, sino un cambio de
+clasificación entre el informe de ejecución y la vista final del backlog.
+
+La decisión técnica central fue abandonar el `UserError` como mecanismo normal
+para retener pedidos. En el MVP, escribir un estado y lanzar una excepción en la
+misma transacción podía provocar que Odoo revirtiera también el cambio de
+estado. Sprint 3 sustituyó ese patrón por una retención pasiva: cuando una línea
+supera el límite, el pedido permanece persistido y pasa a `requires_review`.
+Este cambio convirtió una alerta bloqueante en un flujo de negocio auditable y
+permitió introducir una acción posterior de aprobación.
+
+La parametrización se ubicó en `res.company` mediante
+`discount_limit_percentage`, expuesta en `res.config.settings`. El valor
+predeterminado de 15% funciona como política inicial, mientras que la relación
+con `company_id` permite políticas diferentes en entornos multicompañía. La
+vista de ajustes habilita al administrador para cambiar el umbral sin editar
+Python ni XML.
+
+El control de acceso se diseñó en dos capas. La interfaz oculta el botón cuando
+el pedido no está en `requires_review` o cuando el usuario no pertenece a
+`group_discount_supervisor`; el backend repite la comprobación con `has_group`
+para impedir que una llamada directa omita la restricción visual. El flujo E2E
+documentado comprende cuatro pasos: crear o editar una cotización, superar el
+límite, retener el pedido, y aprobarlo con un usuario autorizado hasta alcanzar
+el estado `sale`.
+
+En DevOps, el sprint evolucionó GitHub Actions hacia una validación del addon y
+no solo de la infraestructura. El workflow obtiene el código, levanta Odoo y
+PostgreSQL con Docker Compose, espera la inicialización, ejecuta únicamente las
+pruebas etiquetadas de `validacion_descuento_maximo`, imprime el log, conserva
+el código de salida y publica `odoo_tests.log` con `if: always()`. El puerto
+8070 aísla la ejecución automatizada de la instancia normal en 8069. Las
+referencias al puerto 8079 y a la base
+`odooips_discount_tests_report_final` pertenecen a validaciones manuales
+locales, mientras que el pipeline utiliza la base `odoo_ventas`.
+
+### Evolución de las decisiones entre Sprint 1 y el estado actual
+
+| Aspecto | Conocimiento obtenido en Sprint 1 | Evolución documentada en Sprint 3 | Implementación presente en la rama actual |
+| --- | --- | --- | --- |
+| Punto de extensión | `action_confirm` y `_action_confirm` permiten validar antes de confirmar | `action_confirm` retiene el pedido sin lanzar una excepción | Se valida en creación, escritura y confirmación mediante `_raise_discount_limit_error`, que cambia a `requires_review` sin lanzar el mensaje preparado |
+| Política comercial | Se identificó el descuento como punto de control del pedido | Límite por compañía con 15% predeterminado | `res.company.discount_limit_percentage`, relacionado con Ajustes |
+| Flujo de revisión | La máquina de estados nativa no incluía revisión | Se añadió `requires_review` y una aprobación jerárquica | El estado y el botón están implementados |
+| Aprobación | Se estudió la conexión XML-Python de botones `type="object"` | El informe describe volver a `draft` y ejecutar `action_confirm` con contexto de omisión | El método actual verifica el grupo y escribe directamente `state = 'sale'` |
+| Jerarquía | Se analizaron equipos y roles comerciales mediante `sales_team` | El informe describe que Supervisor implica Gerente de Ventas | El XML actual crea el grupo, pero no contiene `implied_ids` hacia `sales_team.group_sale_manager` |
+| Calidad | Se definieron escenarios y puntos de entrada que debían probarse | El informe registra 16 pruebas correctas y cero errores | El archivo actual contiene 16 métodos de prueba; verifica el rechazo sin permisos, pero no incluye un caso positivo de aprobación por supervisor |
+| Estructura de seguridad | Se identificaron roles comerciales y puntos de extensión | El informe enumeró `ir.model.access.csv` junto con el grupo supervisor | El addon no contiene ese CSV porque no crea un modelo nuevo; carga únicamente `discount_security.xml` |
+| Automatización | Docker Compose estableció el entorno reproducible | Actions ejecutó tests, propagó fallos y publicó un artifact | `main.yml` conserva este diseño con log en `docker-config/odoo_tests.log` |
+
+Estas diferencias son relevantes para la defensa. El informe de Sprint 3
+describe la intención y una versión histórica del incremento, mientras que el
+repositorio actual determina el comportamiento ejecutable. La referencia
+documental a “Issue #53” corresponde en realidad al Pull Request `#53`, que
+integró la configuración del límite; la issue `#53` del backlog trata el campo
+de configuración en la interfaz. En la exposición deben distinguirse ambos
+objetos para mantener una trazabilidad precisa.
+
 ## Equipo y responsabilidades consolidadas
 
 | Integrante | Responsabilidad predominante | Aportes principales |
@@ -167,8 +295,11 @@ ejecutiva para evaluación.
 | Avance mostrado | 100% | 39/43 issues cerradas, equivalente a 90.7% por conteo simple |
 
 Las 43 tareas de Pages se distribuyen como 5 en Sprint 0, 7 en Sprint 1, 5 en
-Sprint 2, 12 en Sprint 3 y 14 en Sprint 4. Esas cifras representan la
-reconstrucción Scrum mostrada por el portal. No equivalen al número de commits:
+Sprint 2, 12 en Sprint 3 y 14 en Sprint 4. El informe operativo del Sprint 3
+registró 13 tareas en Done; la diferencia proviene de la reclasificación de
+GitHub Pages hacia Sprint 4 en la vista consolidada. Las cifras de Pages
+representan la reconstrucción Scrum mostrada por el portal. No equivalen al
+número de commits:
 durante la ventana de Sprint 0 se registraron 30 commits del equipo, mientras
 que Sprint 1 tuvo 3 commits dentro de su ventana y evidencia adicional
 registrada posteriormente.
@@ -192,18 +323,20 @@ ejecución satisfactoria y evidencia del resultado.
 
 ## Aseguramiento de calidad
 
-La suite actual contiene 15 pruebas de backend. Los casos verifican el valor
+La suite actual contiene 16 métodos de prueba de backend. Los casos verifican el valor
 predeterminado, descuentos inferiores e iguales al límite, excesos decimales,
 múltiples líneas, límites personalizados, creación y modificación de pedidos,
 escritura directa de líneas, exclusión de secciones y permisos de aprobación.
 El workflow de GitHub Actions ejecuta el módulo con `--test-enable`, conserva el
 log aun cuando existen fallos y publica ese log como artifact.
 
-La evidencia documental declara 15 pruebas aprobadas, sin fallos ni errores.
-Este resultado es consistente con el archivo de pruebas disponible. La defensa
-debe acompañarlo con una ejecución reciente de Actions o con el artifact del
-pipeline para demostrar que el resultado no depende únicamente de una captura
-histórica.
+La evidencia del Sprint 2 declaró 15 pruebas aprobadas, sin fallos ni errores.
+El informe detallado del Sprint 3 registró posteriormente una ejecución de 16
+pruebas en 1.373 segundos, también con cero fallos y cero errores. La rama
+actual conserva esos 16 métodos `test_*`, por lo que la diferencia 15/16
+representa la ampliación de cobertura entre ambos sprints. La brecha vigente no
+es numérica: existe una prueba que confirma el rechazo de un usuario sin grupo,
+pero no una que demuestre la aprobación exitosa con un supervisor autorizado.
 
 ## Entregables y evidencia disponible
 
@@ -226,12 +359,13 @@ portal documental son verificables. El proyecto puede presentarse como una
 implementación completa del control de descuentos en Ventas, acompañada por un
 proceso Scrum documentado y prácticas DevOps reales.
 
-Antes de declarar el cierre absoluto deben resolverse cuatro diferencias:
+Antes de declarar el cierre absoluto deben resolverse cinco diferencias:
 
 1. Cerrar o justificar las issues `#33`, `#67`, `#69` y `#70`.
 2. Actualizar Pages para que sus métricas coincidan con el estado vivo de las issues.
 3. Implementar y ejecutar Jenkins, o retirarlo de la lista de componentes implementados.
 4. Integrar la evidencia independiente de Compras desde la rama remota, si se desea defenderla como entregable publicado.
+5. Alinear el informe del Sprint 3 con el código actual respecto de la estrategia de aprobación y la jerarquía del grupo supervisor, y añadir una prueba positiva de aprobación autorizada.
 
 # Auditoría de cambios: Sprint 0 y Sprint 1
 
